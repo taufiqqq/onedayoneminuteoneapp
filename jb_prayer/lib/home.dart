@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -14,10 +15,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  DateTime _currentTime = DateTime.now();
-  Timer? _timer;
-  DateTime currentTime = DateTime.now().toUtc().add(const Duration(hours: 8));
+  Timer? timer;
+  DateTime currentTime = DateTime.now();
   bool showFirstImage = true;
 
   String getNextPrayer() {
@@ -42,51 +41,56 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Sort the prayer times in ascending order
     prayerTimes.sort((a, b) => a.compareTo(b));
-    print(prayerTimes);
+    log(prayerTimes.toString());
     // Find the index of the next upcoming prayer
-    int nextPrayerIndex =
-        prayerTimes.indexWhere((time) => time.isAfter(currentTime));
+    int nextPrayerIndex = -1;
 
+    for (int i = 0; i < prayerTimes.length; i++) {
+      if (prayerTimes[i].isAfter(currentTime)) {
+        nextPrayerIndex = i;
+        break;
+      }
+    }
     // If the next prayer index is -1, it means all prayers for the day have passed,
     // so the next prayer will be the next day's Imsak.
     if (nextPrayerIndex == -1) {
-      return 'imsak';
+      return 'Imsak tomorrow';
     }
     // Otherwise, return the name of the next prayer based on its index
     switch (nextPrayerIndex) {
       case 0:
-        return 'imsak';
+        return 'Imsak';
       case 1:
-        return 'fajr';
+        return 'Fajr';
       case 2:
-        return 'syuruk';
+        return 'Syuruk';
       case 3:
-        return 'dhuhr';
+        return 'Dhuhr';
       case 4:
-        return 'asr';
+        return 'Asr';
       case 5:
-        return 'maghrib';
+        return 'Maghrib';
       case 6:
-        return 'isha';
+        return 'Isha';
       default:
         return 'unknown';
     }
   }
 
   String getSolatTime(String solatName) {
-    if (solatName == 'imsak') {
+    if (solatName == 'Imsak') {
       return widget.today!.imsak;
-    } else if (solatName == 'fajr') {
+    } else if (solatName == 'Fajr') {
       return widget.today!.fajr;
-    } else if (solatName == 'syuruk') {
+    } else if (solatName == 'Syuruk') {
       return widget.today!.syuruk;
-    } else if (solatName == 'dhuhr') {
+    } else if (solatName == 'Dhuhr') {
       return widget.today!.dhuhr;
-    } else if (solatName == 'asr') {
+    } else if (solatName == 'Asr') {
       return widget.today!.asr;
-    } else if (solatName == 'maghrib') {
+    } else if (solatName == 'Maghrib') {
       return widget.today!.maghrib;
-    } else if (solatName == 'isha') {
+    } else if (solatName == 'Isha') {
       return widget.today!.isha;
     } else {
       return 'unknown';
@@ -97,9 +101,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     // Set up a timer to update the time every second
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
       setState(() {
-        _currentTime = DateTime.now();
+        currentTime = DateTime.now();
       });
     });
   }
@@ -107,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void dispose() {
     // Cancel the timer when the widget is disposed
-    _timer?.cancel();
+    timer?.cancel();
     super.dispose();
   }
 
@@ -119,21 +123,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final mytTime = DateFormat('HH:mm:ss')
-        .format(_currentTime.toUtc().add(const Duration(hours: 8)));
+    final mytTime = DateFormat('HH:mm:ss').format(currentTime);
     final nextPrayer = getNextPrayer();
-    final imageUrl = showFirstImage
-        ? 'https://chancellery.utm.my/wp-content/uploads/sites/19/2020/06/tinggi.jpg'
-        : 'https://i.kym-cdn.com/entries/icons/facebook/000/046/505/welivewelovewelie.jpg';
+    final imageUrl =
+        showFirstImage ? 'lib/icon/masjid.jpg' : 'lib/icon/smurf.jpg';
 
-    DateTime currentTime = DateTime.now();
     DateTime tomorrow = currentTime.add(const Duration(days: 1));
 
-    DateTime nextPrayerTime = getNextPrayer() != 'imsak'
+    DateTime nextPrayerTime = getNextPrayer() != 'Imsak tomorrow'
         ? DateFormat('dd-MM-yyyy HH:mm:ss').parse(
             '${DateFormat('dd-MM-yyyy').format(currentTime)} ${getSolatTime(nextPrayer)}')
         : DateFormat('dd-MM-yyyy HH:mm:ss').parse(
-            '${DateFormat('dd-MM-yyyy').format(tomorrow)} ${getSolatTime('imsak')}'); // Replace with the correct prayer time
+            '${DateFormat('dd-MM-yyyy').format(tomorrow)} ${getSolatTime('Imsak')}'); // Replace with the correct prayer time
 
     Duration timeDifference = nextPrayerTime.difference(currentTime);
 
@@ -183,26 +184,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 width: MediaQuery.of(context).size.width * 0.8,
                 child: GestureDetector(
                   onTap: toggleImage,
-                  child: Image.network(
-                    imageUrl,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child; // Display the image once it's loaded
-                      } else {
-                        return CircularProgressIndicator(); // Display a loading indicator while the image is being loaded
-                      }
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Text('Error loading image');
-                    },
-                  ),
+                  child: Image(image: AssetImage(imageUrl)),
                 ),
               ),
             ),
             Text(
               'Imsak Time: ${widget.today!.imsak}',
               style: TextStyle(
-                color: getNextPrayer() == 'imsak'
+                color: getNextPrayer() == 'Imsak' ||
+                        getNextPrayer() == 'Imsak tomorrow'
                     ? Colors.blue
                     : Colors.black, // Change color conditionally
               ),
@@ -210,7 +200,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'Fajr Time: ${widget.today!.fajr}',
               style: TextStyle(
-                color: getNextPrayer() == 'fajr'
+                color: getNextPrayer() == 'Fajr'
                     ? Colors.blue
                     : Colors.black, // Change color conditionally
               ),
@@ -218,7 +208,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'Syuruk Time: ${widget.today!.syuruk}',
               style: TextStyle(
-                color: getNextPrayer() == 'syuruk'
+                color: getNextPrayer() == 'Syuruk'
                     ? Colors.blue
                     : Colors.black, // Change color conditionally
               ),
@@ -226,7 +216,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'Zuhur Time: ${widget.today!.dhuhr}',
               style: TextStyle(
-                color: getNextPrayer() == 'dhuhr'
+                color: getNextPrayer() == 'Dhuhr'
                     ? Colors.blue
                     : Colors.black, // Change color conditionally
               ),
@@ -234,7 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'Asar Time: ${widget.today!.asr}',
               style: TextStyle(
-                color: getNextPrayer() == 'asr'
+                color: getNextPrayer() == 'Asr'
                     ? Colors.blue
                     : Colors.black, // Change color conditionally
               ),
@@ -242,7 +232,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'Maghrib Time: ${widget.today!.maghrib}',
               style: TextStyle(
-                color: getNextPrayer() == 'maghrib'
+                color: getNextPrayer() == 'Maghrib'
                     ? Colors.blue
                     : Colors.black, // Change color conditionally
               ),
@@ -250,7 +240,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'Isha Time: ${widget.today!.isha}',
               style: TextStyle(
-                color: getNextPrayer() == 'isha'
+                color: getNextPrayer() == 'Isha'
                     ? Colors.blue
                     : Colors.black, // Change color conditionally
               ),

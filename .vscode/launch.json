@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "jb_prayer",
+            "cwd": "jb_prayer",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "jb_prayer (profile mode)",
+            "cwd": "jb_prayer",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "jb_prayer (release mode)",
+            "cwd": "jb_prayer",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
