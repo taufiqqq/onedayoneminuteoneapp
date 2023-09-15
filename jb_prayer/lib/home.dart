@@ -21,7 +21,6 @@ class _MyHomePageState extends State<MyHomePage> {
   bool showFirstImage = true;
 
   String getNextPrayer() {
-    print(1);
     final formattedDate = DateFormat('dd-MM-yyyy').format(currentTime);
     // Create a list of prayer times in DateTime format
     List<DateTime> prayerTimes = [
@@ -127,31 +126,28 @@ class _MyHomePageState extends State<MyHomePage> {
         ? 'https://chancellery.utm.my/wp-content/uploads/sites/19/2020/06/tinggi.jpg'
         : 'https://i.kym-cdn.com/entries/icons/facebook/000/046/505/welivewelovewelie.jpg';
 
-    DateTime currentTime = DateTime.now().toUtc().add(const Duration(hours: 8));
+    DateTime currentTime = DateTime.now();
     DateTime tomorrow = currentTime.add(const Duration(days: 1));
-    DateTime nextPrayerTime = DateFormat('dd-MM-yyyy HH:mm:ss').parse(
-        '${DateFormat('dd-MM-yyyy').format(currentTime)} ${getSolatTime(nextPrayer)}'); // Replace with the correct prayer time
-    DateTime tomorrowPrayerTime = DateFormat('dd-MM-yyyy HH:mm:ss').parse(
-        '${DateFormat('dd-MM-yyyy').format(tomorrow)} ${getSolatTime('imsak')}');
-    Duration timeDifference = nextPrayerTime.isAfter(currentTime)
-        ? nextPrayerTime.difference(currentTime)
-        : tomorrowPrayerTime.difference(
-            currentTime); // If the next prayer is in the past, set the difference to zero
+
+    DateTime nextPrayerTime = getNextPrayer() != 'imsak'
+        ? DateFormat('dd-MM-yyyy HH:mm:ss').parse(
+            '${DateFormat('dd-MM-yyyy').format(currentTime)} ${getSolatTime(nextPrayer)}')
+        : DateFormat('dd-MM-yyyy HH:mm:ss').parse(
+            '${DateFormat('dd-MM-yyyy').format(tomorrow)} ${getSolatTime('imsak')}'); // Replace with the correct prayer time
+
+    Duration timeDifference = nextPrayerTime.difference(currentTime);
 
     int hoursDifference = timeDifference.inHours;
     int minutesDifference = timeDifference.inMinutes.remainder(60);
     int secondsDifference = timeDifference.inSeconds.remainder(60);
     String timeUntilNextPrayer =
         '$hoursDifference hours, $minutesDifference minutes, $secondsDifference seconds';
-    if (hoursDifference != 0) {
-    } else {
-      () {
-        timeUntilNextPrayer =
-            '$minutesDifference minutes, $secondsDifference seconds';
-        if (minutesDifference == 0) {
-          timeUntilNextPrayer = '$secondsDifference seconds';
-        }
-      };
+    if (hoursDifference == 0) {
+      timeUntilNextPrayer =
+          '$minutesDifference minutes, $secondsDifference seconds';
+      if (minutesDifference == 0) {
+        timeUntilNextPrayer = '$secondsDifference seconds';
+      }
     }
 
     return Scaffold(
